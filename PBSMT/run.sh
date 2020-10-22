@@ -35,7 +35,7 @@ mkdir -p $PARA_PATH
 mkdir -p $EMB_PATH
 
 # moses
-MOSES_PATH=/content/ubuntu-17.04/moses  # PATH_WHERE_YOU_INSTALLED_MOSES
+MOSES_PATH=/content/ubuntu-16.04  # PATH_WHERE_YOU_INSTALLED_MOSES
 TOKENIZER=$MOSES_PATH/scripts/tokenizer/tokenizer.perl
 NORM_PUNC=$MOSES_PATH/scripts/tokenizer/normalize-punctuation.perl
 INPUT_FROM_SGM=$MOSES_PATH/scripts/ems/support/input-from-sgm.perl
@@ -95,14 +95,15 @@ if ! [[ -f "$TRAIN_LM" ]]; then
 fi
 
 
-# Download MUSE
-if [ ! -d "$MUSE_PATH" ]; then
-  echo "Cloning MUSE from GitHub repository..."
-  git clone https://github.com/facebookresearch/MUSE.git
-  cd $MUSE_PATH/data/
-  ./get_evaluation.sh
-fi
-echo "MUSE found in: $MUSE_PATH"
+# # Download MUSE
+# if [ ! -d "$MUSE_PATH" ]; then
+#   echo "Cloning MUSE from GitHub repository..."
+#   git clone https://github.com/facebookresearch/MUSE.git
+#   cd $MUSE_PATH/data/
+#   # chmod +x get_evaluation.sh 
+#   # ./get_evaluation.sh
+# fi
+# echo "MUSE found in: $MUSE_PATH"
 
 
 #
@@ -197,11 +198,15 @@ if ! [[ "$(wc -l < $SRC_RAW)" -eq "$N_MONO" ]]; then echo "ERROR: Number of line
 if ! [[ "$(wc -l < $TGT_RAW)" -eq "$N_MONO" ]]; then echo "ERROR: Number of lines doesn't match! Be sure you have $N_MONO sentences in your $TGT monolingual data."; exit; fi
 
 # tokenize data
-if ! [[ -f "$SRC_TOK" && -f "$TGT_TOK" ]]; then
-  echo "Tokenize monolingual data..."
-  cat $SRC_RAW | $NORM_PUNC -l $SRC | $TOKENIZER -l $SRC -no-escape -threads $N_THREADS > $SRC_TOK
-  cat $TGT_RAW | $NORM_PUNC -l $TGT | $TOKENIZER -l $TGT -no-escape -threads $N_THREADS > $TGT_TOK
-fi
+# if ! [[ -f "$SRC_TOK" && -f "$TGT_TOK" ]]; then
+#   echo "Tokenize monolingual data..."
+#   cat $SRC_RAW | $NORM_PUNC -l $SRC | $TOKENIZER -l $SRC -no-escape -threads $N_THREADS > $SRC_TOK
+#   cat $TGT_RAW | $NORM_PUNC -l $TGT | $TOKENIZER -l $TGT -no-escape -threads $N_THREADS > $TGT_TOK
+# fi
+pip install indic-nlp-library
+# Enter path where pip is installed (pip show)
+python /usr/local/lib/python3.6/dist-packages/indicnlp/tokenize/indic_tokenize.py /content/UnsupervisedMT/PBSMT/data/mono/all.sa /content/UnsupervisedMT/PBSMT/data/mono/all.sa.tok sa
+python /usr/local/lib/python3.6/dist-packages/indicnlp/tokenize/indic_tokenize.py /content/UnsupervisedMT/PBSMT/data/mono/all.hi /content/UnsupervisedMT/PBSMT/data/mono/all.hi.tok hi
 echo "$SRC monolingual data tokenized in: $SRC_TOK"
 echo "$TGT monolingual data tokenized in: $TGT_TOK"
 
@@ -255,41 +260,45 @@ cp /content/hindi_test_parallel.hi .
 echo "Extracting parallel data..."
 # tar -xzf dev.tgz
 
-# check valid and test files are here
-if ! [[ -f "$SRC_VALID.sgm" ]]; then echo "$SRC_VALID.sgm is not found!"; exit; fi
-if ! [[ -f "$TGT_VALID.sgm" ]]; then echo "$TGT_VALID.sgm is not found!"; exit; fi
-if ! [[ -f "$SRC_TEST.sgm" ]]; then echo "$SRC_TEST.sgm is not found!"; exit; fi
-if ! [[ -f "$TGT_TEST.sgm" ]]; then echo "$TGT_TEST.sgm is not found!"; exit; fi
 
-echo "Tokenizing valid and test data..."
-$INPUT_FROM_SGM < $SRC_VALID.sgm | $NORM_PUNC -l $SRC | $REM_NON_PRINT_CHAR | $TOKENIZER -l $SRC -no-escape -threads $N_THREADS > $SRC_VALID.tok
-$INPUT_FROM_SGM < $TGT_VALID.sgm | $NORM_PUNC -l $TGT | $REM_NON_PRINT_CHAR | $TOKENIZER -l $TGT -no-escape -threads $N_THREADS > $TGT_VALID.tok
-$INPUT_FROM_SGM < $SRC_TEST.sgm | $NORM_PUNC -l $SRC | $REM_NON_PRINT_CHAR | $TOKENIZER -l $SRC -no-escape -threads $N_THREADS > $SRC_TEST.tok
-$INPUT_FROM_SGM < $TGT_TEST.sgm | $NORM_PUNC -l $TGT | $REM_NON_PRINT_CHAR | $TOKENIZER -l $TGT -no-escape -threads $N_THREADS > $TGT_TEST.tok
 
-echo "Truecasing valid and test data..."
-$TRUECASER --model $SRC_TRUECASER < $SRC_VALID.tok > $SRC_VALID.true
-$TRUECASER --model $TGT_TRUECASER < $TGT_VALID.tok > $TGT_VALID.true
-$TRUECASER --model $SRC_TRUECASER < $SRC_TEST.tok > $SRC_TEST.true
-$TRUECASER --model $TGT_TRUECASER < $TGT_TEST.tok > $TGT_TEST.true
+# # check valid and test files are here
+# if ! [[ -f "$SRC_VALID.sgm" ]]; then echo "$SRC_VALID.sgm is not found!"; exit; fi
+# if ! [[ -f "$TGT_VALID.sgm" ]]; then echo "$TGT_VALID.sgm is not found!"; exit; fi
+# if ! [[ -f "$SRC_TEST.sgm" ]]; then echo "$SRC_TEST.sgm is not found!"; exit; fi
+# if ! [[ -f "$TGT_TEST.sgm" ]]; then echo "$TGT_TEST.sgm is not found!"; exit; fi
+
+# echo "Tokenizing valid and test data..."
+# $INPUT_FROM_SGM < $SRC_VALID.sgm | $NORM_PUNC -l $SRC | $REM_NON_PRINT_CHAR | $TOKENIZER -l $SRC -no-escape -threads $N_THREADS > $SRC_VALID.tok
+# $INPUT_FROM_SGM < $TGT_VALID.sgm | $NORM_PUNC -l $TGT | $REM_NON_PRINT_CHAR | $TOKENIZER -l $TGT -no-escape -threads $N_THREADS > $TGT_VALID.tok
+# $INPUT_FROM_SGM < $SRC_TEST.sgm | $NORM_PUNC -l $SRC | $REM_NON_PRINT_CHAR | $TOKENIZER -l $SRC -no-escape -threads $N_THREADS > $SRC_TEST.tok
+# $INPUT_FROM_SGM < $TGT_TEST.sgm | $NORM_PUNC -l $TGT | $REM_NON_PRINT_CHAR | $TOKENIZER -l $TGT -no-escape -threads $N_THREADS > $TGT_TEST.tok
+
+# echo "Truecasing valid and test data..."
+# $TRUECASER --model $SRC_TRUECASER < $SRC_VALID.tok > $SRC_VALID.true
+# $TRUECASER --model $TGT_TRUECASER < $TGT_VALID.tok > $TGT_VALID.true
+# $TRUECASER --model $SRC_TRUECASER < $SRC_TEST.tok > $SRC_TEST.true
+# $TRUECASER --model $TGT_TRUECASER < $TGT_TEST.tok > $TGT_TEST.true
 
 
 #
 # Running MUSE to generate cross-lingual embeddings
 #
+mkdir $MUSE_PATH/alignments
+cp /content/sahi/vectors-sa.txt $MUSE_PATH/alignments/vectors-sa.txt
+cp /content/sahi/vectors-hi.txt $MUSE_PATH/alignments/vectors-hi.txt
 
-ALIGNED_EMBEDDINGS_SRC=$MUSE_PATH/alignments/wiki-released-$SRC$TGT-identical_char/vectors-$SRC.pth
-ALIGNED_EMBEDDINGS_TGT=$MUSE_PATH/alignments/wiki-released-$SRC$TGT-identical_char/vectors-$TGT.pth
-
-if ! [[ -f "$ALIGNED_EMBEDDINGS_SRC" && -f "$ALIGNED_EMBEDDINGS_TGT" ]]; then
-  rm -rf $MUSE_PATH/alignments/
-  echo "Aligning embeddings with MUSE..."
-  python $MUSE_PATH/supervised.py --src_lang $SRC --tgt_lang $TGT \
-  --exp_path $MUSE_PATH --exp_name alignments --exp_id wiki-released-$SRC$TGT-identical_char \
-  --src_emb $EMB_SRC \
-  --tgt_emb $EMB_TGT \
-  --n_refinement 5 --dico_train identical_char --export "pth"
-fi
+ALIGNED_EMBEDDINGS_SRC=$MUSE_PATH/alignments/vectors-sa.txt
+ALIGNED_EMBEDDINGS_TGT=$MUSE_PATH/alignments/vectors-hi.txt
+# if ! [[ -f "$ALIGNED_EMBEDDINGS_SRC" && -f "$ALIGNED_EMBEDDINGS_TGT" ]]; then
+#   rm -rf $MUSE_PATH/alignments/
+#   echo "Aligning embeddings with MUSE..."
+#   python $MUSE_PATH/supervised.py --src_lang $SRC --tgt_lang $TGT \
+#   --exp_path $MUSE_PATH --exp_name alignments --exp_id wiki-released-$SRC$TGT-identical_char \
+#   --src_emb $EMB_SRC \
+#   --tgt_emb $EMB_TGT \
+#   --n_refinement 5 --dico_train identical_char --export "pth"
+# fi
 echo "$SRC aligned embeddings: $ALIGNED_EMBEDDINGS_SRC"
 echo "$TGT aligned embeddings: $ALIGNED_EMBEDDINGS_TGT"
 
@@ -298,7 +307,7 @@ echo "$TGT aligned embeddings: $ALIGNED_EMBEDDINGS_TGT"
 # Generating a phrase-table in an unsupervised way
 #
 
-PHRASE_TABLE_PATH=$MUSE_PATH/alignments/wiki-released-$SRC$TGT-identical_char/phrase-table.$SRC-$TGT.gz
+PHRASE_TABLE_PATH=$MUSE_PATH/alignments/phrase-table.$SRC-$TGT.gz
 if ! [[ -f "$PHRASE_TABLE_PATH" ]]; then
   echo "Generating unsupervised phrase-table"
   python $UMT_PATH/create-phrase-table.py \
@@ -337,15 +346,15 @@ cat $TRAIN_DIR/model/moses.ini.bkp | grep -v LexicalReordering > $TRAIN_DIR/mode
 echo "Linking phrase-table path..."
 ln -sf $PHRASE_TABLE_PATH $TRAIN_DIR/model/phrase-table.gz
 
-echo "Translating test sentences..."
-$MOSES_BIN -threads $N_THREADS -f $CONFIG_PATH < $SRC_TEST.true > $TRAIN_DIR/test.$TGT.hyp.true
+# echo "Translating test sentences..."
+# $MOSES_BIN -threads $N_THREADS -f $CONFIG_PATH < $SRC_TEST.true > $TRAIN_DIR/test.$TGT.hyp.true
 
-echo "Detruecasing hypothesis..."
-$DETRUECASER < $TRAIN_DIR/test.$TGT.hyp.true > $TRAIN_DIR/test.$TGT.hyp.tok
+# echo "Detruecasing hypothesis..."
+# $DETRUECASER < $TRAIN_DIR/test.$TGT.hyp.true > $TRAIN_DIR/test.$TGT.hyp.tok
 
-echo "Evaluating translations..."
-$MULTIBLEU $TGT_TEST.true < $TRAIN_DIR/test.$TGT.hyp.true > $TRAIN_DIR/eval.true
-$MULTIBLEU $TGT_TEST.tok < $TRAIN_DIR/test.$TGT.hyp.tok > $TRAIN_DIR/eval.tok
-cat $TRAIN_DIR/eval.tok
+# echo "Evaluating translations..."
+# $MULTIBLEU $TGT_TEST.true < $TRAIN_DIR/test.$TGT.hyp.true > $TRAIN_DIR/eval.true
+# $MULTIBLEU $TGT_TEST.tok < $TRAIN_DIR/test.$TGT.hyp.tok > $TRAIN_DIR/eval.tok
+# cat $TRAIN_DIR/eval.tok
 
 echo "End of training. Experiment is stored in: $TRAIN_DIR"
