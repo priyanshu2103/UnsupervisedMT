@@ -11,10 +11,10 @@ set -e
 # Data preprocessing configuration
 #
 
-N_MONO=10000000  # number of monolingual sentences for each language
+N_MONO=222152  # number of monolingual sentences for each language
 N_THREADS=48     # number of threads in data preprocessing
-SRC=en           # source language
-TGT=fr           # target language
+SRC=sa           # source language
+TGT=hi           # target language
 
 
 #
@@ -35,7 +35,7 @@ mkdir -p $PARA_PATH
 mkdir -p $EMB_PATH
 
 # moses
-MOSES_PATH=/private/home/guismay/tools/mosesdecoder  # PATH_WHERE_YOU_INSTALLED_MOSES
+MOSES_PATH=/content/ubuntu-17.04/moses  # PATH_WHERE_YOU_INSTALLED_MOSES
 TOKENIZER=$MOSES_PATH/scripts/tokenizer/tokenizer.perl
 NORM_PUNC=$MOSES_PATH/scripts/tokenizer/normalize-punctuation.perl
 INPUT_FROM_SGM=$MOSES_PATH/scripts/ems/support/input-from-sgm.perl
@@ -111,28 +111,28 @@ echo "MUSE found in: $MUSE_PATH"
 
 cd $EMB_PATH
 
-if [ ! -f "cc.en.300.vec.gz" ]; then
+if [ ! -f "cc.sa.300.vec.gz" ]; then
   echo "Downloading $SRC pretrained embeddings..."
-  wget -c "https://dl.fbaipublicfiles.com/fasttext/vectors-crawl/cc.en.300.vec.gz"
+  wget -c "https://dl.fbaipublicfiles.com/fasttext/vectors-crawl/cc.sa.300.vec.gz"
 fi
-if [ ! -f "cc.fr.300.vec.gz" ]; then
+if [ ! -f "cc.hi.300.vec.gz" ]; then
   echo "Downloading $TGT pretrained embeddings..."
-  wget -c "https://dl.fbaipublicfiles.com/fasttext/vectors-crawl/cc.fr.300.vec.gz"
+  wget -c "https://dl.fbaipublicfiles.com/fasttext/vectors-crawl/cc.hi.300.vec.gz"
 fi
 
-if [ ! -f "cc.en.300.vec" ]; then
-  echo "Decompressing English pretrained embeddings..."
-  gunzip -k cc.en.300.vec.gz
+if [ ! -f "cc.sa.300.vec" ]; then
+  echo "Decompressing Sanskrit pretrained embeddings..."
+  gunzip -k cc.sa.300.vec.gz
 fi
-if [ ! -f "cc.fr.300.vec" ]; then
-  echo "Decompressing French pretrained embeddings..."
-  gunzip -k cc.fr.300.vec.gz
+if [ ! -f "cc.hi.300.vec" ]; then
+  echo "Decompressing Hindi pretrained embeddings..."
+  gunzip -k cc.hi.300.vec.gz
 fi
 
-if [ "$SRC" == "en" ]; then EMB_SRC=$EMB_PATH/cc.en.300.vec; fi
-if [ "$SRC" == "fr" ]; then EMB_SRC=$EMB_PATH/cc.fr.300.vec; fi
-if [ "$TGT" == "en" ]; then EMB_TGT=$EMB_PATH/cc.en.300.vec; fi
-if [ "$TGT" == "fr" ]; then EMB_TGT=$EMB_PATH/cc.fr.300.vec; fi
+if [ "$SRC" == "sa" ]; then EMB_SRC=$EMB_PATH/cc.sa.300.vec; fi
+if [ "$SRC" == "hi" ]; then EMB_SRC=$EMB_PATH/cc.hi.300.vec; fi
+if [ "$TGT" == "sa" ]; then EMB_TGT=$EMB_PATH/cc.sa.300.vec; fi
+if [ "$TGT" == "hi" ]; then EMB_TGT=$EMB_PATH/cc.hi.300.vec; fi
 
 echo "Pretrained $SRC embeddings found in: $EMB_SRC"
 echo "Pretrained $TGT embeddings found in: $EMB_TGT"
@@ -144,11 +144,12 @@ echo "Pretrained $TGT embeddings found in: $EMB_TGT"
 
 cd $MONO_PATH
 
-echo "Downloading English files..."
-wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2007.en.shuffled.gz
-wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2008.en.shuffled.gz
-wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2009.en.shuffled.gz
-wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2010.en.shuffled.gz
+echo "Downloading Sanskrit files..."
+cp /content/all.sa .
+# wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2007.en.shuffled.gz
+# wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2008.en.shuffled.gz
+# wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2009.en.shuffled.gz
+# wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2010.en.shuffled.gz
 # wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2011.en.shuffled.gz
 # wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2012.en.shuffled.gz
 # wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2013.en.shuffled.gz
@@ -157,11 +158,12 @@ wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2010.en
 # wget -c http://data.statmt.org/wmt17/translation-task/news.2016.en.shuffled.gz
 # wget -c http://data.statmt.org/wmt18/translation-task/news.2017.en.shuffled.deduped.gz
 
-echo "Downloading French files..."
-wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2007.fr.shuffled.gz
-wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2008.fr.shuffled.gz
-wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2009.fr.shuffled.gz
-wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2010.fr.shuffled.gz
+echo "Downloading Hindi files..."
+cp /content/all.hi .
+# wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2007.fr.shuffled.gz
+# wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2008.fr.shuffled.gz
+# wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2009.fr.shuffled.gz
+# wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2010.fr.shuffled.gz
 # wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2011.fr.shuffled.gz
 # wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2012.fr.shuffled.gz
 # wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2013.fr.shuffled.gz
@@ -171,22 +173,22 @@ wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2010.fr
 # wget -c http://data.statmt.org/wmt17/translation-task/news.2017.fr.shuffled.gz
 
 # decompress monolingual data
-for FILENAME in news*gz; do
-  OUTPUT="${FILENAME::-3}"
-  if [ ! -f "$OUTPUT" ]; then
-    echo "Decompressing $FILENAME..."
-    gunzip -k $FILENAME
-  else
-    echo "$OUTPUT already decompressed."
-  fi
-done
+# for FILENAME in news*gz; do
+#   OUTPUT="${FILENAME::-3}"
+#   if [ ! -f "$OUTPUT" ]; then
+#     echo "Decompressing $FILENAME..."
+#     gunzip -k $FILENAME
+#   else
+#     echo "$OUTPUT already decompressed."
+#   fi
+# done
 
 # concatenate monolingual data files
-if ! [[ -f "$SRC_RAW" && -f "$TGT_RAW" ]]; then
-  echo "Concatenating monolingual data..."
-  cat $(ls news*en* | grep -v gz) | head -n $N_MONO > $SRC_RAW
-  cat $(ls news*fr* | grep -v gz) | head -n $N_MONO > $TGT_RAW
-fi
+# if ! [[ -f "$SRC_RAW" && -f "$TGT_RAW" ]]; then
+#   echo "Concatenating monolingual data..."
+#   cat $(ls news*en* | grep -v gz) | head -n $N_MONO > $SRC_RAW
+#   cat $(ls news*fr* | grep -v gz) | head -n $N_MONO > $TGT_RAW
+# fi
 echo "$SRC monolingual data concatenated in: $SRC_RAW"
 echo "$TGT monolingual data concatenated in: $TGT_RAW"
 
@@ -247,10 +249,11 @@ echo "$TGT binarized language model in: $TGT_LM_BLM"
 cd $PARA_PATH
 
 echo "Downloading parallel data..."
-wget -c http://data.statmt.org/wmt17/translation-task/dev.tgz
+cp /content/sanskrit_test_parallel.sa .
+cp /content/hindi_test_parallel.hi .
 
 echo "Extracting parallel data..."
-tar -xzf dev.tgz
+# tar -xzf dev.tgz
 
 # check valid and test files are here
 if ! [[ -f "$SRC_VALID.sgm" ]]; then echo "$SRC_VALID.sgm is not found!"; exit; fi
