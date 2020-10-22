@@ -21,11 +21,30 @@ def load_txt_embeddings(params, source):
   # words = []
   with open(file,"r") as f:
     lines = f.readlines()
-  
-  lines = lines[1:]
-  words = [line.split()[0] for line in lines]
-  vectors = [line.split()[1:] for line in lines]
 
+  words = []
+  vectors = []
+  lines = lines[1:]
+
+  flag = False
+  # one word ('अ') repeated in hindi file
+  if not source:
+    for line in lines:
+      t = line.split()
+      if t[0] != 'अ':
+        words.append(t[0])
+        vectors.append(t[1:])
+      else:
+        if !flag:
+          flag=True
+        else:
+          words.append(t[0])
+          vectors.append(t[1:])
+  else:
+    words = [line.split()[0] for line in lines]
+    vectors = [line.split()[1:] for line in lines]
+  # if not source:
+  #   words.remove('अ')
   res = []
   for vector in vectors:
     res.append([float(v) for v in vector])
@@ -33,7 +52,8 @@ def load_txt_embeddings(params, source):
   embeddings = torch.FloatTensor(res)
   # assert dico.lang == lang
   word2id = {w: i for i, w in enumerate(words)}
-  id2word = {i: w for w, i in word2id.items()}
+  id2word = {i: w for i, w in enumerate(words)}
+  print("hhhhhhhhhhhhhhhhhhhhhhhhhhh",len(word2id), len(id2word))
   dico = Dictionary(id2word, word2id, lang)
 
   print("Loaded %i pre-trained word embeddings." % len(dico))
