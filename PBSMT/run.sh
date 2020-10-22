@@ -35,7 +35,7 @@ mkdir -p $PARA_PATH
 mkdir -p $EMB_PATH
 
 # moses
-MOSES_PATH=/content/ubuntu-16.04  # PATH_WHERE_YOU_INSTALLED_MOSES
+MOSES_PATH=/content/ubuntu-17.04/moses  # PATH_WHERE_YOU_INSTALLED_MOSES
 TOKENIZER=$MOSES_PATH/scripts/tokenizer/tokenizer.perl
 NORM_PUNC=$MOSES_PATH/scripts/tokenizer/normalize-punctuation.perl
 INPUT_FROM_SGM=$MOSES_PATH/scripts/ems/support/input-from-sgm.perl
@@ -203,7 +203,7 @@ if ! [[ "$(wc -l < $TGT_RAW)" -eq "$N_MONO" ]]; then echo "ERROR: Number of line
 #   cat $SRC_RAW | $NORM_PUNC -l $SRC | $TOKENIZER -l $SRC -no-escape -threads $N_THREADS > $SRC_TOK
 #   cat $TGT_RAW | $NORM_PUNC -l $TGT | $TOKENIZER -l $TGT -no-escape -threads $N_THREADS > $TGT_TOK
 # fi
-pip install indic-nlp-library
+# pip install indic-nlp-library
 # Enter path where pip is installed (pip show)
 python /usr/local/lib/python3.6/dist-packages/indicnlp/tokenize/indic_tokenize.py /content/UnsupervisedMT/PBSMT/data/mono/all.sa /content/UnsupervisedMT/PBSMT/data/mono/all.sa.tok sa
 python /usr/local/lib/python3.6/dist-packages/indicnlp/tokenize/indic_tokenize.py /content/UnsupervisedMT/PBSMT/data/mono/all.hi /content/UnsupervisedMT/PBSMT/data/mono/all.hi.tok hi
@@ -221,7 +221,7 @@ echo "$TGT truecaser in: $TGT_TRUECASER"
 
 # truecase data
 if ! [[ -f "$SRC_TRUE" && -f "$TGT_TRUE" ]]; then
-  echo "Truecsing monolingual data..."
+  echo "Truecasing monolingual data..."
   $TRUECASER --model $SRC_TRUECASER < $SRC_TOK > $SRC_TRUE
   $TRUECASER --model $TGT_TRUECASER < $TGT_TOK > $TGT_TRUE
 fi
@@ -231,6 +231,7 @@ echo "$TGT monolingual data truecased in: $TGT_TRUE"
 # learn language models
 if ! [[ -f "$SRC_LM_ARPA" && -f "$TGT_LM_ARPA" ]]; then
   echo "Learning language models..."
+  # cat $SRC_TRUE #| /content/ubuntu-16.04/bin/lmplz -o 3 > $SRC_LM_ARPA
   $TRAIN_LM -o 5 < $SRC_TRUE > $SRC_LM_ARPA
   $TRAIN_LM -o 5 < $TGT_TRUE > $TGT_LM_ARPA
 fi
@@ -284,7 +285,8 @@ echo "Extracting parallel data..."
 #
 # Running MUSE to generate cross-lingual embeddings
 #
-mkdir $MUSE_PATH/alignments
+mkdir -p $MUSE_PATH
+mkdir -p $MUSE_PATH/alignments
 cp /content/sahi/vectors-sa.txt $MUSE_PATH/alignments/vectors-sa.txt
 cp /content/sahi/vectors-hi.txt $MUSE_PATH/alignments/vectors-hi.txt
 
@@ -306,7 +308,6 @@ echo "$TGT aligned embeddings: $ALIGNED_EMBEDDINGS_TGT"
 #
 # Generating a phrase-table in an unsupervised way
 #
-
 PHRASE_TABLE_PATH=$MUSE_PATH/alignments/phrase-table.$SRC-$TGT.gz
 if ! [[ -f "$PHRASE_TABLE_PATH" ]]; then
   echo "Generating unsupervised phrase-table"

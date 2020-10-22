@@ -15,6 +15,29 @@ def load_fasttext_model(path):
                         "https://github.com/facebookresearch/fastText")
     return fastText.load_model(path)
 
+def load_txt_embeddings(params, source):
+  lang = params.src_lang if source else params.tgt_lang
+  file = params.src_emb if source else params.tgt_emb
+  # words = []
+  with open(file,"r") as f:
+    lines = f.readlines()
+  
+  lines = lines[1:]
+  words = [line.split()[0] for line in lines]
+  vectors = [line.split()[1:] for line in lines]
+
+  res = []
+  for vector in vectors:
+    res.append([float(v) for v in vector])
+
+  embeddings = torch.FloatTensor(res)
+  # assert dico.lang == lang
+  word2id = {w: i for i, w in enumerate(words)}
+  id2word = {i: w for w, i in word2id.items()}
+  dico = Dictionary(id2word, word2id, lang)
+
+  print("Loaded %i pre-trained word embeddings." % len(dico))
+  return dico, embeddings
 
 def load_pth_embeddings(params, source):
     """
@@ -59,6 +82,8 @@ def load_embeddings(params, source):
         dico, emb = load_pth_embeddings(params, source)
     if emb_path.endswith('.bin'):
         dico, emb = load_bin_embeddings(params, source)
+    if emb_path.endswith('.txt'):
+        dico, emb = load_txt_embeddings(params, source)
     if params.max_vocab > 0:
         dico.prune(params.max_vocab)
         emb = emb[:params.max_vocab]
