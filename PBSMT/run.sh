@@ -11,7 +11,7 @@ set -e
 # Data preprocessing configuration
 #
 
-N_MONO=222152  # number of monolingual sentences for each language
+N_MONO=4270974   # number of monolingual sentences for each language
 N_THREADS=48     # number of threads in data preprocessing
 SRC=sa           # source language
 TGT=hi           # target language
@@ -61,10 +61,10 @@ SRC_TOK=$MONO_PATH/all.$SRC.tok
 TGT_TOK=$MONO_PATH/all.$TGT.tok
 SRC_TRUE=$MONO_PATH/all.$SRC.true
 TGT_TRUE=$MONO_PATH/all.$TGT.true
-SRC_VALID=$PARA_PATH/dev/newstest2013-ref.$SRC
-TGT_VALID=$PARA_PATH/dev/newstest2013-ref.$TGT
-SRC_TEST=$PARA_PATH/dev/newstest2014-fren-src.$SRC
-TGT_TEST=$PARA_PATH/dev/newstest2014-fren-src.$TGT
+SRC_VALID=$PARA_PATH/dev/sanskrit_val.$SRC
+TGT_VALID=$PARA_PATH/dev/hindi_val.$TGT
+SRC_TEST=$PARA_PATH/dev/sanskrit_test.$SRC
+TGT_TEST=$PARA_PATH/dev/hindi_test.$TGT
 SRC_TRUECASER=$DATA_PATH/$SRC.truecaser
 TGT_TRUECASER=$DATA_PATH/$TGT.truecaser
 SRC_LM_ARPA=$DATA_PATH/$SRC.lm.arpa
@@ -72,7 +72,7 @@ TGT_LM_ARPA=$DATA_PATH/$TGT.lm.arpa
 SRC_LM_BLM=$DATA_PATH/$SRC.lm.blm
 TGT_LM_BLM=$DATA_PATH/$TGT.lm.blm
 
-
+mkdir -p $PARA_PATH/dev
 #
 # Download and install tools
 #
@@ -100,7 +100,7 @@ fi
 #   echo "Cloning MUSE from GitHub repository..."
 #   git clone https://github.com/facebookresearch/MUSE.git
 #   cd $MUSE_PATH/data/
-#   # chmod +x get_evaluation.sh 
+#   # chmod +x get_evaluation.sh
 #   # ./get_evaluation.sh
 # fi
 # echo "MUSE found in: $MUSE_PATH"
@@ -112,28 +112,30 @@ fi
 
 cd $EMB_PATH
 
-if [ ! -f "cc.sa.300.vec.gz" ]; then
-  echo "Downloading $SRC pretrained embeddings..."
-  wget -c "https://dl.fbaipublicfiles.com/fasttext/vectors-crawl/cc.sa.300.vec.gz"
-fi
-if [ ! -f "cc.hi.300.vec.gz" ]; then
-  echo "Downloading $TGT pretrained embeddings..."
-  wget -c "https://dl.fbaipublicfiles.com/fasttext/vectors-crawl/cc.hi.300.vec.gz"
-fi
+# if [ ! -f "cc.sa.300.vec" ]; then
+#   echo "Downloading $SRC pretrained embeddings..."
+#   wget -c "https://dl.fbaipublicfiles.com/fasttext/vectors-crawl/cc.sa.300.vec.gz"
+# fi
+# if [ ! -f "cc.hi.300.vec" ]; then
+#   echo "Downloading $TGT pretrained embeddings..."
+#   wget -c "https://dl.fbaipublicfiles.com/fasttext/vectors-crawl/cc.hi.300.vec.gz"
+# fi
 
-if [ ! -f "cc.sa.300.vec" ]; then
-  echo "Decompressing Sanskrit pretrained embeddings..."
-  gunzip -k cc.sa.300.vec.gz
-fi
-if [ ! -f "cc.hi.300.vec" ]; then
-  echo "Decompressing Hindi pretrained embeddings..."
-  gunzip -k cc.hi.300.vec.gz
-fi
+# if [ ! -f "cc.sa.300.vec" ]; then
+#   echo "Decompressing Sanskrit pretrained embeddings..."
+#   gunzip -k cc.sa.300.vec.gz
+#   rm -rf cc.sa.300.vec.gz
+# fi
+# if [ ! -f "cc.hi.300.vec" ]; then
+#   echo "Decompressing Hindi pretrained embeddings..."
+#   gunzip -k cc.hi.300.vec.gz
+#   rm -rf cc.hi.300.vec.gz
+# fi
 
-if [ "$SRC" == "sa" ]; then EMB_SRC=$EMB_PATH/cc.sa.300.vec; fi
-if [ "$SRC" == "hi" ]; then EMB_SRC=$EMB_PATH/cc.hi.300.vec; fi
-if [ "$TGT" == "sa" ]; then EMB_TGT=$EMB_PATH/cc.sa.300.vec; fi
-if [ "$TGT" == "hi" ]; then EMB_TGT=$EMB_PATH/cc.hi.300.vec; fi
+# if [ "$SRC" == "sa" ]; then EMB_SRC=$EMB_PATH/cc.sa.300.vec; fi
+# if [ "$SRC" == "hi" ]; then EMB_SRC=$EMB_PATH/cc.hi.300.vec; fi
+# if [ "$TGT" == "sa" ]; then EMB_TGT=$EMB_PATH/cc.sa.300.vec; fi
+# if [ "$TGT" == "hi" ]; then EMB_TGT=$EMB_PATH/cc.hi.300.vec; fi
 
 echo "Pretrained $SRC embeddings found in: $EMB_SRC"
 echo "Pretrained $TGT embeddings found in: $EMB_TGT"
@@ -261,7 +263,11 @@ cp /content/hindi_test_parallel.hi .
 echo "Extracting parallel data..."
 # tar -xzf dev.tgz
 
+python /usr/local/lib/python3.6/dist-packages/indicnlp/tokenize/indic_tokenize.py /content/sanskrit_val_parallel.sa $SRC_VALID.tok sa
+python /usr/local/lib/python3.6/dist-packages/indicnlp/tokenize/indic_tokenize.py /content/hindi_val_parallel.hi $TGT_VALID.tok hi
 
+python /usr/local/lib/python3.6/dist-packages/indicnlp/tokenize/indic_tokenize.py /content/sanskrit_test_parallel.sa $SRC_TEST.tok sa
+python /usr/local/lib/python3.6/dist-packages/indicnlp/tokenize/indic_tokenize.py /content/hindi_test_parallel.hi $TGT_TEST.tok hi
 
 # # check valid and test files are here
 # if ! [[ -f "$SRC_VALID.sgm" ]]; then echo "$SRC_VALID.sgm is not found!"; exit; fi
@@ -275,11 +281,11 @@ echo "Extracting parallel data..."
 # $INPUT_FROM_SGM < $SRC_TEST.sgm | $NORM_PUNC -l $SRC | $REM_NON_PRINT_CHAR | $TOKENIZER -l $SRC -no-escape -threads $N_THREADS > $SRC_TEST.tok
 # $INPUT_FROM_SGM < $TGT_TEST.sgm | $NORM_PUNC -l $TGT | $REM_NON_PRINT_CHAR | $TOKENIZER -l $TGT -no-escape -threads $N_THREADS > $TGT_TEST.tok
 
-# echo "Truecasing valid and test data..."
-# $TRUECASER --model $SRC_TRUECASER < $SRC_VALID.tok > $SRC_VALID.true
-# $TRUECASER --model $TGT_TRUECASER < $TGT_VALID.tok > $TGT_VALID.true
-# $TRUECASER --model $SRC_TRUECASER < $SRC_TEST.tok > $SRC_TEST.true
-# $TRUECASER --model $TGT_TRUECASER < $TGT_TEST.tok > $TGT_TEST.true
+echo "Truecasing valid and test data..."
+$TRUECASER --model $SRC_TRUECASER < $SRC_VALID.tok > $SRC_VALID.true
+$TRUECASER --model $TGT_TRUECASER < $TGT_VALID.tok > $TGT_VALID.true
+$TRUECASER --model $SRC_TRUECASER < $SRC_TEST.tok > $SRC_TEST.true
+$TRUECASER --model $TGT_TRUECASER < $TGT_TEST.tok > $TGT_TEST.true
 
 
 #
@@ -287,9 +293,10 @@ echo "Extracting parallel data..."
 #
 mkdir -p $MUSE_PATH
 mkdir -p $MUSE_PATH/alignments
-cp /content/sahi/vectors-sa.txt $MUSE_PATH/alignments/vectors-sa.txt
-cp /content/sahi/vectors-hi.txt $MUSE_PATH/alignments/vectors-hi.txt
+[[ -e /content/sahi/vectors-sa.txt ]] && cp /content/sahi/vectors-sa.txt $MUSE_PATH/alignments/vectors-sa.txt
+[[ -e /content/sahi/vectors-hi.txt ]] && cp /content/sahi/vectors-hi.txt $MUSE_PATH/alignments/vectors-hi.txt
 
+rm -rf /content/sahi/
 ALIGNED_EMBEDDINGS_SRC=$MUSE_PATH/alignments/vectors-sa.txt
 ALIGNED_EMBEDDINGS_TGT=$MUSE_PATH/alignments/vectors-hi.txt
 # if ! [[ -f "$ALIGNED_EMBEDDINGS_SRC" && -f "$ALIGNED_EMBEDDINGS_TGT" ]]; then
@@ -347,15 +354,15 @@ cat $TRAIN_DIR/model/moses.ini.bkp | grep -v LexicalReordering > $TRAIN_DIR/mode
 echo "Linking phrase-table path..."
 ln -sf $PHRASE_TABLE_PATH $TRAIN_DIR/model/phrase-table.gz
 
-# echo "Translating test sentences..."
-# $MOSES_BIN -threads $N_THREADS -f $CONFIG_PATH < $SRC_TEST.true > $TRAIN_DIR/test.$TGT.hyp.true
+echo "Translating test sentences..."
+$MOSES_BIN -threads $N_THREADS -f $CONFIG_PATH < $SRC_TEST.true > $TRAIN_DIR/test.$TGT.hyp.true
 
-# echo "Detruecasing hypothesis..."
-# $DETRUECASER < $TRAIN_DIR/test.$TGT.hyp.true > $TRAIN_DIR/test.$TGT.hyp.tok
+echo "Detruecasing hypothesis..."
+$DETRUECASER < $TRAIN_DIR/test.$TGT.hyp.true > $TRAIN_DIR/test.$TGT.hyp.tok
 
-# echo "Evaluating translations..."
-# $MULTIBLEU $TGT_TEST.true < $TRAIN_DIR/test.$TGT.hyp.true > $TRAIN_DIR/eval.true
-# $MULTIBLEU $TGT_TEST.tok < $TRAIN_DIR/test.$TGT.hyp.tok > $TRAIN_DIR/eval.tok
-# cat $TRAIN_DIR/eval.tok
+echo "Evaluating translations..."
+$MULTIBLEU $TGT_TEST.true < $TRAIN_DIR/test.$TGT.hyp.true > $TRAIN_DIR/eval.true
+$MULTIBLEU $TGT_TEST.tok < $TRAIN_DIR/test.$TGT.hyp.tok > $TRAIN_DIR/eval.tok
+cat $TRAIN_DIR/eval.tok
 
 echo "End of training. Experiment is stored in: $TRAIN_DIR"
