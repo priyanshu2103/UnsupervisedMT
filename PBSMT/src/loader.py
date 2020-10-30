@@ -35,7 +35,7 @@ def load_txt_embeddings(params, source):
         words.append(t[0])
         vectors.append(t[1:])
       else:
-        if !flag:
+        if not flag:
           flag=True
         else:
           words.append(t[0])
